@@ -34,6 +34,10 @@ function onDecoratedElement(fn) {
             || m.target.dataset.blockStatus === 'loaded')) {
             fn();
         }
+        if (mutations.some((m) => (m.target.dataset.blockName === 'target-html-block')
+          && m.target.dataset.blockStatus === 'loaded')) {
+          window.dispatchEvent(new CustomEvent('target-response'));
+        }
     });
     // Watch sections and blocks being decorated async
     observer.observe(document.querySelector('main'), {
@@ -55,8 +59,21 @@ async function getElementForProposition(proposition) {
     return document.querySelector(selector);
 }
 
+async function getTargetBlocksMetadata() {
+    const scopes = ['__view__'];
+    const targetBlocks = document.querySelectorAll('div.target-html-block');
+
+    targetBlocks?.forEach((el) => {
+        scopes.push(el.dataset.decisionScope);
+    });
+
+    return scopes;
+}
+
 async function getAndApplyRenderDecisions() {
     const payload = {};
+    const decisionScopes = await getTargetBlocksMetadata();
+    
     const { propositions } = await window.alloy('sendEvent', {
         type: 'decisioning.propositionFetch',
         "personalization": {
@@ -68,7 +85,7 @@ async function getAndApplyRenderDecisions() {
                 target: payload,
             },
         },
-        decisionScopes: ['__view__', 'target-html-block', 'target-json-block'],
+        decisionScopes: decisionScopes,
     });
     const customPropositions = propositions?.filter((p) => p.scope !== '__view__');
     customPropositions?.forEach(({ scope, items, ...rest }) => {

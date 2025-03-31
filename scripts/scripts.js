@@ -55,6 +55,30 @@ function buildAutoBlocks(main) {
 }
 
 /**
+ * Decorates target specific blocks like recommendations and personalization.
+ * Read the metadata required for target from the block and set them as data attributes.
+ * @param {Element} main The main element
+ */
+function decorateTargetBlocks(main) {
+  main.querySelectorAll(
+    'div.section > div > div.target-html-block',
+  )?.forEach((block) => {
+    block.querySelectorAll(':scope > div').forEach((row) => {
+      const key = row.children[0]?.innerText;
+      let value;
+      // if (block.classList.contains('tab')) {
+      //   value = row.querySelector('a')?.getAttribute('href');
+      // } else {
+      //   value = row.children[1]?.innerText;
+      // }
+      value = row.children[1]?.innerText;
+      block.dataset[key] = value || '';
+      block.innerHTML = '';
+    });
+  });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -66,6 +90,7 @@ export function decorateMain(main) {
   buildAutoBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
+  decorateTargetBlocks(main);
 }
 
 /**
